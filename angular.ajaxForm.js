@@ -158,7 +158,7 @@
 							successHandler(element, data);
 						},
 						error: function(data, txt, xhr) {
-							errorHandler(element, data, showValidationErrors);
+							errorHandler(element, data.responseJSON, data, showValidationErrors);
 						},
 					});
 
