@@ -91,6 +91,16 @@
 				showValidationErrors(form, data.validation);
 			}
 
+			if(data.exception) {
+
+				var el = $('<div class="alert alert-danger alert-dismissible ajax-form-alert" role="alert">\
+					<button type="button" class="close" data-dismiss="alert">\
+					<span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>\
+					<strong>Error!</strong> ' + data.exception + '</div>');
+
+				form.prepend(el);
+			}
+
 		}
 
 		var filterHandler = function(form, data) {
@@ -155,6 +165,12 @@
 						url: element.attr('action'),
 						data: data,
 						success: function(data, txt, xhr) {
+							
+							if( ! data.ok) {
+								errorHandler(element, data, data, showValidationErrors);
+								return;
+							}
+
 							successHandler(element, data);
 						},
 						error: function(data, txt, xhr) {
@@ -168,8 +184,34 @@
 		};
 	}
 
+
+	// Allow us to inject an HTML form into the DOM on load
+	function injectElement($http, $compile) {
+		
+		return {
+			restrict: 'A',
+			link: function($scope, $elem, attrs){
+				
+				$(window).on('load', function() {
+
+					var promise = $http
+						.get('/blog/comment/form')
+						.success(function(data) {
+							//$elem.html(data);
+							var template = $compile(data)($scope);
+							$elem.append(template);
+						})
+						.error(function(data) {
+							console.log(data);
+						});
+				});
+			}
+		}
+	}
+
 	angular.module('AngularAjaxForm', [])
-		.directive('ajaxForm', ['$http', '$parse', '$window', ajaxForm]);
+		.directive('ajaxForm', ['$http', '$parse', '$window', ajaxForm])
+		.directive('injectElement', ['$http', '$compile', injectElement]);
 
 })();
 
